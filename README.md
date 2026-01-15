@@ -88,6 +88,7 @@ pip install -r requirements.txt
 python run.py
 Open browser and visit:
 http://127.0.0.1:5000
+```
 
 📋 Usage Guide
 Data Import Flow
@@ -135,4 +136,3 @@ This platform is for demonstration and educational use only.
 All visualizations and analytics shown do not constitute medical advice.
 Please do not rely on this system for clinical decisions.
 Consult licensed medical professionals if you have health concerns.
-'''
