@@ -80,7 +80,7 @@ Copy code
 
 ### Installation
 ```bash
-git clone https://github.com/yourusername/healthweb.git
+git clone https://github.com/Jamiexiao242/SeeMyStats.git
 cd healthweb
 python -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate (Windows)
