@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block title %}HealthWeb - Health Dashboard{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .stat-card {
+        transition: transform 0.3s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if has_data %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Health Data Dashboard</h2>
+                    <div>
+                        <a href="{{ url_for('analysis.health_summary') }}" class="btn btn-light btn-sm">View Health Summary</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if stats.get('heart_rate') %}
+                        <div class="col-md-3">
+                            <div class="card stat-card text-center mb-3">
+                                <div class="card-body">
+                                    <div class="stat-icon text-danger">
+                                        <i class="bi bi-heart-pulse"></i>
+                                    </div>
+                                    <div class="stat-value">{{ stats.heart_rate.get('平均心率', 0)|float|round(1) }}</div>
+                                    <div class="stat-label">Average Heart Rate (bpm)</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if stats.get('steps') %}
+                        <div class="col-md-3">
+                            <div class="card stat-card text-center mb-3">
+                                <div class="card-body">
+                                    <div class="stat-icon text-primary">
+                                        <i class="bi bi-person-walking"></i>
+                                    </div>
+                                    <div class="stat-value">{{ stats.steps.get('平均每日步数', 0)|float|round(0)|int }}</div>
+                                    <div class="stat-label">Average Daily Steps</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if stats.get('sleep') %}
+                        <div class="col-md-3">
+                            <div class="card stat-card text-center mb-3">
+                                <div class="card-body">
+                                    <div class="stat-icon text-info">
+                                        <i class="bi bi-moon"></i>
+                                    </div>
+                                    <div class="stat-value">{{ stats.sleep.get('平均睡眠时长', 0)|float|round(1) }}</div>
+                                    <div class="stat-label">Average Sleep Duration</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-3">
+                            <div class="card stat-card text-center mb-3">
+                                <div class="card-body">
+                                    <div class="stat-icon text-success">
+                                        <i class="bi bi-clipboard-data"></i>
+                                    </div>
+                                    <div class="stat-value">{{ data_types|length }}</div>
+                                    <div class="stat-label">Available Data Types</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">Health Data Overview</h3>
+                </div>
+                <div class="card-body">
+                    <div id="dashboard-chart" style="height: 800px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">Single Metric Analysis</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="#" class="btn btn-outline-primary" id="steps-btn">Steps Analysis</a>
+                        <a href="#" class="btn btn-outline-danger" id="heart-btn">Heart Rate Analysis</a>
+                        <a href="#" class="btn btn-outline-info" id="sleep-btn">Sleep Analysis</a>
+                        <a href="#" class="btn btn-outline-warning" id="stress-btn">Stress Analysis</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">Available Data Types</h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for data_type in data_types[:5] %}
+                        <a href="{{ url_for('analysis.get_data', data_type=data_type) }}" class="list-group-item list-group-item-action">
+                            {{ data_type }}
+                        </a>
+                        {% endfor %}
+                        {% if data_types|length > 5 %}
+                        <a href="{{ url_for('analysis.index') }}" class="list-group-item list-group-item-action text-center">
+                            View more data types ({{ data_types|length - 5 }}+)
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 单项图表模态框 -->
+    <div class="modal fade" id="chartModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chartModalTitle">Data Analysis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="chart-container" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h2 class="mb-4">No health data available</h2>
+                    <p class="lead">Upload your Apple Health data to view the dashboard</p>
+                    <a href="{{ url_for('upload.upload_file') }}" class="btn btn-primary btn-lg mt-3">Upload Health Data</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if has_data and dashboard_chart %}
+<script>
+    // 渲染仪表板图表
+    const dashboardData = {{ dashboard_chart|tojson }};
+    Plotly.newPlot('dashboard-chart', dashboardData.data, dashboardData.layout);
+    
+    // 单项图表加载
+    const chartModal = new bootstrap.Modal(document.getElementById('chartModal'));
+    
+    // 步数分析按钮
+    document.getElementById('steps-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('chartModalTitle').textContent = 'Steps Analysis';
+        document.getElementById('chart-container').innerHTML = '<div class="text-center py-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        chartModal.show();
+        
+        fetch('{{ url_for("dashboard.get_chart", chart_type="steps") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('chart-container').innerHTML = '<div class="alert alert-warning text-center p-5"><i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i><h3>' + data.error + '</h3><p class="mt-3">No step data found. Please make sure your health data includes step records.</p></div>';
+                } else {
+                    Plotly.newPlot('chart-container', data.data, data.layout);
+                }
+            })
+            .catch(error => {
+                document.getElementById('chart-container').innerHTML = '<div class="alert alert-danger">Error loading data</div>';
+                console.error('Error:', error);
+            });
+    });
+    
+    // 心率分析按钮
+    document.getElementById('heart-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('chartModalTitle').textContent = 'Heart Rate Analysis';
+        document.getElementById('chart-container').innerHTML = '<div class="text-center py-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        chartModal.show();
+        
+        fetch('{{ url_for("dashboard.get_chart", chart_type="heart_rate") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('chart-container').innerHTML = '<div class="alert alert-warning text-center p-5"><i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i><h3>' + data.error + '</h3><p class="mt-3">No heart rate data found. Please make sure your health data includes heart rate records.</p></div>';
+                } else {
+                    Plotly.newPlot('chart-container', data.data, data.layout);
+                }
+            })
+            .catch(error => {
+                document.getElementById('chart-container').innerHTML = '<div class="alert alert-danger">Error loading data</div>';
+                console.error('Error:', error);
+            });
+    });
+    
+    // 睡眠分析按钮
+    document.getElementById('sleep-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('chartModalTitle').textContent = 'Sleep Analysis';
+        document.getElementById('chart-container').innerHTML = '<div class="text-center py-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        chartModal.show();
+        
+        fetch('{{ url_for("dashboard.get_chart", chart_type="sleep") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('chart-container').innerHTML = '<div class="alert alert-warning text-center p-5"><i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i><h3>' + data.error + '</h3><p class="mt-3">No sleep data found. Please make sure your health data includes sleep records.</p></div>';
+                } else {
+                    Plotly.newPlot('chart-container', data.data, data.layout);
+                }
+            })
+            .catch(error => {
+                document.getElementById('chart-container').innerHTML = '<div class="alert alert-danger">Error loading data</div>';
+                console.error('Error:', error);
+            });
+    });
+    
+    // 压力分析按钮
+    document.getElementById('stress-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('chartModalTitle').textContent = 'Stress Analysis';
+        document.getElementById('chart-container').innerHTML = '<div class="text-center py-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        chartModal.show();
+        
+        fetch('{{ url_for("dashboard.get_chart", chart_type="stress") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('chart-container').innerHTML = '<div class="alert alert-warning text-center p-5"><i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i><h3>' + data.error + '</h3><p class="mt-3">Not enough heart rate variability data to estimate stress.</p></div>';
+                } else {
+                    Plotly.newPlot('chart-container', data.data, data.layout);
+                }
+            })
+            .catch(error => {
+                document.getElementById('chart-container').innerHTML = '<div class="alert alert-danger">Error loading data</div>';
+                console.error('Error:', error);
+            });
+    });
+</script>
+{% endif %}
+{% endblock %} 

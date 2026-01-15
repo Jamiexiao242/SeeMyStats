@@ -1,0 +1,1126 @@
+{% extends 'base.html' %}
+
+{% block title %}HealthWeb - Data Analysis{% endblock %}
+
+{% block head %}
+<style>
+    .data-type-card {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .data-type-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Health Data Analysis</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">Choose an analysis type or data type to begin a deeper look into your health data.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h3 class="mb-0">Analysis Types</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="#correlation-section" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Correlation Analysis</h5>
+                            <p class="mb-1">Analyze relationships between health metrics</p>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">Stats</span>
+                    </a>
+                    <a href="#trend-section" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Trend Analysis</h5>
+                            <p class="mb-1">Explore how health metrics change over time</p>
+                        </div>
+                        <span class="badge bg-success rounded-pill">Charts</span>
+                    </a>
+                    <a href="{{ url_for('analysis.health_summary') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Health Summary</h5>
+                            <p class="mb-1">A consolidated report based on all available data</p>
+                        </div>
+                        <span class="badge bg-info rounded-pill">Report</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h3 class="mb-0">Health Stats</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if stats.get('heart_rate') %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-danger text-white">
+                                Heart Rate Stats
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Average Heart Rate
+                                        <span class="badge bg-primary rounded-pill">{{ stats.heart_rate.get('平均心率', 0)|float|round(1) }} bpm</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Max Heart Rate
+                                        <span class="badge bg-danger rounded-pill">{{ stats.heart_rate.get('最大心率', 0)|float|round(1) }} bpm</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Min Heart Rate
+                                        <span class="badge bg-info rounded-pill">{{ stats.heart_rate.get('最小心率', 0)|float|round(1) }} bpm</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if stats.get('steps') %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                Steps Stats
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Total Steps
+                                        <span class="badge bg-primary rounded-pill">{{ stats.steps.get('总步数', 0)|float|round(0)|int }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Average Daily Steps
+                                        <span class="badge bg-success rounded-pill">{{ stats.steps.get('平均每日步数', 0)|float|round(0)|int }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Max Steps
+                                        <span class="badge bg-danger rounded-pill">{{ stats.steps.get('最高步数', 0)|float|round(0)|int }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if stats.get('sleep') %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                Sleep Stats
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Average Sleep Duration
+                                        <span class="badge bg-primary rounded-pill">{{ stats.sleep.get('平均睡眠时长', 0)|float|round(1) }} hours</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Longest Sleep Duration
+                                        <span class="badge bg-success rounded-pill">{{ stats.sleep.get('最长睡眠时长', 0)|float|round(1) }} hours</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Shortest Sleep Duration
+                                        <span class="badge bg-warning rounded-pill">{{ stats.sleep.get('最短睡眠时长', 0)|float|round(1) }} hours</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4" id="correlation-section">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h3 class="mb-0">Correlation Analysis</h3>
+            </div>
+            <div class="card-body">
+                <form id="correlation-form" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group mb-3">
+                                <label for="type1" class="form-label">Data Type 1:</label>
+                                <select class="form-select" id="type1" name="type1" required>
+                                    <option value="">Select a data type</option>
+                                    {% for data_type in data_types %}
+                                    <option value="{{ data_type }}">{{ data_type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group mb-3">
+                                <label for="type2" class="form-label">Data Type 2:</label>
+                                <select class="form-select" id="type2" name="type2" required>
+                                    <option value="">Select a data type</option>
+                                    {% for data_type in data_types %}
+                                    <option value="{{ data_type }}">{{ data_type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group d-grid">
+                                <label class="invisible">Analyze</label>
+                                <button type="submit" class="btn btn-primary">Analyze Correlation</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+                <div id="correlation-result" style="display: none;">
+                    <div class="alert alert-info mb-3" id="correlation-info"></div>
+                    <div id="correlation-chart" style="height: 500px;"></div>
+                </div>
+                
+                <div id="correlation-loading" style="display: none;">
+                    <div class="text-center py-5">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Analyzing data...</p>
+                    </div>
+                </div>
+                
+                <div id="correlation-error" class="alert alert-danger" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4" id="trend-section">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h3 class="mb-0">Available Data Types</h3>
+            </div>
+            <div class="card-body">
+                <p>Select a data type to view detailed analysis:</p>
+                <div class="row">
+                    {% for data_type in data_types %}
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="card data-type-card" data-type="{{ data_type }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ data_type }}</h5>
+                                <p class="card-text small text-muted">Click to view detailed data and trend analysis</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 数据类型详情模态框 -->
+<div class="modal fade" id="dataTypeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dataTypeModalTitle">Data Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="data-type-info" class="mb-3"></div>
+                <div id="data-type-chart" style="height: 400px;"></div>
+                <div class="mt-4">
+                    <h5>Data Stats</h5>
+                    <div id="data-type-stats" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 初始化模态框
+    const dataTypeModal = new bootstrap.Modal(document.getElementById('dataTypeModal'));
+    
+    // 为每个数据类型卡片添加点击事件
+    document.querySelectorAll('.data-type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const dataType = this.getAttribute('data-type');
+            document.getElementById('dataTypeModalTitle').textContent = dataType;
+            document.getElementById('data-type-info').innerHTML = '<div class="alert alert-info">Loading...</div>';
+            document.getElementById('data-type-chart').innerHTML = '';
+            document.getElementById('data-type-stats').innerHTML = '';
+            dataTypeModal.show();
+            
+            // 获取数据并显示
+            fetch(`{{ url_for('analysis.get_data', data_type='TYPE_PLACEHOLDER') }}`.replace('TYPE_PLACEHOLDER', dataType))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 显示数据信息
+                    document.getElementById('data-type-info').innerHTML = 
+                        `<div class="alert alert-success">Found ${data.count} records</div>`;
+                    
+                    // 绘制技术图表（如果有足够的数据）
+                    if (data.data && data.data.length > 0) {
+                        try {
+                            // 假设数据包含startDate和value字段
+                            // 检查必要的字段
+                            const hasDateField = data.data[0].hasOwnProperty('startDate') || 
+                                              data.data[0].hasOwnProperty('date') || 
+                                              data.data[0].hasOwnProperty('日期');
+                            const hasValueField = data.data[0].hasOwnProperty('value') || 
+                                               data.data[0].hasOwnProperty('值');
+                            
+                            if (hasDateField && hasValueField) {
+                                // 提取日期和值，并按日期排序
+                                let dateField = data.data[0].hasOwnProperty('startDate') ? 'startDate' : 
+                                             (data.data[0].hasOwnProperty('date') ? 'date' : '日期');
+                                let valueField = data.data[0].hasOwnProperty('value') ? 'value' : '值';
+                                
+                                // 转换日期字符串为Date对象并排序
+                                let timeSeriesData = [...data.data]
+                                    .map(item => ({
+                                        date: new Date(item[dateField]),
+                                        value: parseFloat(item[valueField])
+                                    }))
+                                    .filter(item => !isNaN(item.value)) // 过滤无效值
+                                    .sort((a, b) => a.date - b.date);
+                                
+                                if (timeSeriesData.length >= 7) { // 至少需要7天数据才有意义
+                                    // 计算技术指标
+                                    // 1. 简单移动平均线 (SMA)
+                                    const sma7 = calculateSMA(timeSeriesData, 7);
+                                    const sma14 = calculateSMA(timeSeriesData, 14);
+                                    const sma30 = timeSeriesData.length >= 30 ? calculateSMA(timeSeriesData, 30) : [];
+                                    
+                                    // 2. 相对强弱指数 (RSI)
+                                    const rsi14 = calculateRSI(timeSeriesData, 14);
+                                    
+                                    // 3. 布林带 (Bollinger Bands)
+                                    const bollingerBands = calculateBollingerBands(timeSeriesData, 20, 2);
+                                    
+                                    // 4. 平均真实范围 (ATR)
+                                    const atr14 = calculateATR(timeSeriesData, 14);
+                                    
+                                    // 创建主图表
+                                    const mainChart = {
+                                        x: timeSeriesData.map(d => d.date),
+                                        y: timeSeriesData.map(d => d.value),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: 'Raw Data',
+                                        line: {
+                                            color: '#3366CC',
+                                            width: 1.5
+                                        }
+                                    };
+                                    
+                                    // 添加SMA线
+                                    const sma7Line = {
+                                        x: sma7.map(d => d.date),
+                                        y: sma7.map(d => d.sma),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: '7-day SMA',
+                                        line: {
+                                            color: '#FF9900',
+                                            width: 1.5,
+                                            dash: 'dash'
+                                        }
+                                    };
+                                    
+                                    const sma14Line = {
+                                        x: sma14.map(d => d.date),
+                                        y: sma14.map(d => d.sma),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: '14-day SMA',
+                                        line: {
+                                            color: '#DC3912',
+                                            width: 1.5,
+                                            dash: 'dash'
+                                        }
+                                    };
+                                    
+                                    // 添加布林带
+                                    const upperBand = {
+                                        x: bollingerBands.map(d => d.date),
+                                        y: bollingerBands.map(d => d.upper),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: 'Upper Band (+2 sigma)',
+                                        line: {
+                                            color: 'rgba(75, 192, 192, 0.5)',
+                                            width: 1
+                                        }
+                                    };
+                                    
+                                    const lowerBand = {
+                                        x: bollingerBands.map(d => d.date),
+                                        y: bollingerBands.map(d => d.lower),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: 'Lower Band (-2 sigma)',
+                                        line: {
+                                            color: 'rgba(75, 192, 192, 0.5)',
+                                            width: 1
+                                        },
+                                        fill: 'tonexty',
+                                        fillcolor: 'rgba(75, 192, 192, 0.1)'
+                                    };
+                                    
+                                    // 创建主图表
+                                    const traces = [mainChart, sma7Line, sma14Line, upperBand, lowerBand];
+                                    
+                                    // 只有数据足够多时才添加30日SMA
+                                    if (sma30.length > 0) {
+                                        const sma30Line = {
+                                            x: sma30.map(d => d.date),
+                                            y: sma30.map(d => d.sma),
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: '30-day SMA',
+                                            line: {
+                                                color: '#109618',
+                                                width: 1.5,
+                                                dash: 'dash'
+                                            }
+                                        };
+                                        traces.push(sma30Line);
+                                    }
+                                    
+                                    const layout = {
+                                        title: `${dataType} Technical Analysis`,
+                                        xaxis: {
+                                            title: 'Date',
+                                            rangeslider: {visible: true},
+                                            type: 'date'
+                                        },
+                                        yaxis: {
+                                            title: 'Value',
+                                            autorange: true
+                                        },
+                                        legend: {
+                                            orientation: 'h',
+                                            y: -0.2
+                                        },
+                                        grid: {rows: 1, columns: 1, pattern: 'independent'},
+                                        autosize: true,
+                                        margin: {l: 50, r: 50, t: 80, b: 30}
+                                    };
+                                    
+                                    // 添加配置，启用box select等交互工具
+                                    const config = {
+                                        modeBarButtonsToAdd: [
+                                            'drawclosedpath',
+                                            'eraseshape',
+                                            'select2d',
+                                            'lasso2d'
+                                        ],
+                                        scrollZoom: true,
+                                        displaylogo: false,
+                                        responsive: true,
+                                        // 显式启用所有选择模式
+                                        dragmode: 'select',
+                                        // 确保框选工具始终可见
+                                        modeBarButtonsToRemove: []
+                                    };
+                                    
+                                    Plotly.newPlot('data-type-chart', traces, layout, config);
+                                    
+                                    // 创建RSI子图表
+                                    const rsiDiv = document.createElement('div');
+                                    rsiDiv.id = 'rsi-chart';
+                                    rsiDiv.style.height = '200px';
+                                    rsiDiv.style.marginTop = '15px';
+                                    document.getElementById('data-type-chart').after(rsiDiv);
+                                    
+                                    const rsiTrace = {
+                                        x: rsi14.map(d => d.date),
+                                        y: rsi14.map(d => d.rsi),
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: 'RSI (14)',
+                                        line: {
+                                            color: '#990099',
+                                            width: 1.5
+                                        }
+                                    };
+                                    
+                                    // 添加RSI超买超卖线
+                                    const rsiOverbought = {
+                                        x: [rsi14[0].date, rsi14[rsi14.length - 1].date],
+                                        y: [70, 70],
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: 'Overbought Zone',
+                                        line: {
+                                            color: 'red',
+                                            width: 1,
+                                            dash: 'dot'
+                                        }
+                                    };
+                                    
+                                    const rsiOversold = {
+                                        x: [rsi14[0].date, rsi14[rsi14.length - 1].date],
+                                        y: [30, 30],
+                                        type: 'scatter',
+                                        mode: 'lines',
+                                        name: 'Oversold Zone',
+                                        line: {
+                                            color: 'green',
+                                            width: 1,
+                                            dash: 'dot'
+                                        }
+                                    };
+                                    
+                                    const rsiLayout = {
+                                        title: 'Relative Strength Index (RSI-14)',
+                                        xaxis: {
+                                            type: 'date',
+                                            rangeslider: {visible: false}
+                                        },
+                                        yaxis: {
+                                            title: 'RSI',
+                                            range: [0, 100]
+                                        },
+                                        showlegend: true,
+                                        legend: {
+                                            orientation: 'h',
+                                            y: -0.2
+                                        },
+                                        margin: {l: 50, r: 50, t: 50, b: 30},
+                                        height: 200,
+                                        // 增加可选择性
+                                        dragmode: 'select'
+                                    };
+                                    
+                                    // 创建RSI专用配置，确保box select可用
+                                    const rsiConfig = {
+                                        modeBarButtonsToAdd: [
+                                            'select2d',
+                                            'lasso2d',
+                                            'zoom2d',
+                                            'pan2d',
+                                            'zoomIn2d',
+                                            'zoomOut2d',
+                                            'autoScale2d',
+                                            'resetScale2d'
+                                        ],
+                                        scrollZoom: true,
+                                        displaylogo: false,
+                                        responsive: true,
+                                        // 显式启用选择模式
+                                        dragmode: 'select',
+                                        // 确保框选工具始终可见
+                                        modeBarButtonsToRemove: []
+                                    };
+                                    
+                                    // 为RSI图表也添加相同的交互工具
+                                    Plotly.newPlot('rsi-chart', [rsiTrace, rsiOverbought, rsiOversold], rsiLayout, rsiConfig);
+                                    
+                                    // 添加指标解释卡片
+                                    const interpretationHTML = `
+                                    <div class="card mt-3 mb-3">
+                                        <div class="card-header bg-info text-white">
+                                            <h5 class="mb-0">Technical Indicator Guide</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6>Simple Moving Average (SMA)</h6>
+                                                    <p>Smooths volatility to show longer-term trends. Crossovers often signal a trend shift.</p>
+                                                    <ul>
+                                                        <li>7-day SMA crosses above 14-day SMA: a short-term uptrend forms</li>
+                                                        <li>7-day SMA crosses below 14-day SMA: a short-term downtrend forms</li>
+                                                    </ul>
+                                                    
+                                                    <h6>Bollinger Bands</h6>
+                                                    <p>A dynamic range based on standard deviation for spotting unusual swings.</p>
+                                                    <ul>
+                                                        <li>Above the upper band: may be temporarily high</li>
+                                                        <li>Below the lower band: may be temporarily low</li>
+                                                        <li>Band width narrows: volatility is shrinking and a larger move may follow</li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6>Relative Strength Index (RSI)</h6>
+                                                    <p>Measures momentum over a period on a 0-100 scale.</p>
+                                                    <ul>
+                                                        <li>RSI &gt; 70: potentially overbought, monitor closely</li>
+                                                        <li>RSI &lt; 30: potentially oversold, monitor closely</li>
+                                                        <li>RSI trend line: indicates momentum direction</li>
+                                                    </ul>
+                                                    
+                                                    <h6>Applied to health data</h6>
+                                                    <p>These indicators help you understand patterns in your health data:</p>
+                                                    <ul>
+                                                        <li>Identify unusual swings and long-term trends</li>
+                                                        <li>Anticipate potential direction changes</li>
+                                                        <li>Detect cyclical patterns in the data</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                    
+                                    // 添加到页面
+                                    document.getElementById('rsi-chart').insertAdjacentHTML('afterend', interpretationHTML);
+                                }
+                            }
+                        } catch (err) {
+                            console.error("Error rendering technical charts:", err);
+                        }
+                        
+                        // 获取前10条数据并创建表格
+                        const tableData = data.data.slice(0, 10);
+                        let tableHTML = '<div class="table-responsive"><table class="table table-striped table-sm">';
+                        
+                        // 添加表头
+                        tableHTML += '<thead><tr>';
+                        Object.keys(tableData[0]).forEach(key => {
+                            tableHTML += `<th>${key}</th>`;
+                        });
+                        tableHTML += '</tr></thead>';
+                        
+                        // 添加表格内容
+                        tableHTML += '<tbody>';
+                        tableData.forEach(row => {
+                            tableHTML += '<tr>';
+                            Object.values(row).forEach(value => {
+                                tableHTML += `<td>${value}</td>`;
+                            });
+                            tableHTML += '</tr>';
+                        });
+                        tableHTML += '</tbody></table></div>';
+                        
+                        if (data.data.length > 10) {
+                            tableHTML += `<p class="text-muted">Showing first 10 records, ${data.count} total</p>`;
+                        }
+                        
+                        document.getElementById('data-type-stats').innerHTML = tableHTML;
+                    } else {
+                        document.getElementById('data-type-stats').innerHTML = 
+                            '<div class="alert alert-warning">No data available</div>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('data-type-info').innerHTML = 
+                        `<div class="alert alert-danger">Error loading data: ${error.message}</div>`;
+                });
+        });
+    });
+    
+    // 计算简单移动平均线 (SMA)
+    function calculateSMA(data, window) {
+        const result = [];
+        if (data.length < window) return result;
+        
+        for (let i = window - 1; i < data.length; i++) {
+            const windowSlice = data.slice(i - window + 1, i + 1);
+            const sum = windowSlice.reduce((total, item) => total + item.value, 0);
+            const sma = sum / window;
+            result.push({
+                date: data[i].date,
+                sma: sma
+            });
+        }
+        return result;
+    }
+    
+    // 计算相对强弱指数 (RSI)
+    function calculateRSI(data, period) {
+        const result = [];
+        if (data.length <= period) return result;
+        
+        // 计算相邻两天的涨跌幅
+        const changes = [];
+        for (let i = 1; i < data.length; i++) {
+            const change = data[i].value - data[i-1].value;
+            changes.push({
+                date: data[i].date,
+                change: change
+            });
+        }
+        
+        // 计算平均涨幅和平均跌幅
+        for (let i = period - 1; i < changes.length; i++) {
+            const periodChanges = changes.slice(i - period + 1, i + 1);
+            
+            const gains = periodChanges.filter(c => c.change > 0).map(c => c.change);
+            const losses = periodChanges.filter(c => c.change < 0).map(c => Math.abs(c.change));
+            
+            const avgGain = gains.length > 0 ? gains.reduce((sum, val) => sum + val, 0) / period : 0;
+            const avgLoss = losses.length > 0 ? losses.reduce((sum, val) => sum + val, 0) / period : 0;
+            
+            let rs = avgGain / (avgLoss || 1); // 避免除以零
+            let rsi = 100 - (100 / (1 + rs));
+            
+            result.push({
+                date: changes[i].date,
+                rsi: rsi
+            });
+        }
+        
+        return result;
+    }
+    
+    // 计算布林带 (Bollinger Bands)
+    function calculateBollingerBands(data, period, multiplier) {
+        const result = [];
+        if (data.length < period) return result;
+        
+        // 计算SMA
+        const smaData = calculateSMA(data, period);
+        
+        // 计算标准差
+        for (let i = 0; i < smaData.length; i++) {
+            const index = data.findIndex(d => d.date.getTime() === smaData[i].date.getTime());
+            if (index >= period - 1) {
+                const periodData = data.slice(index - period + 1, index + 1);
+                const sma = smaData[i].sma;
+                
+                // 计算标准差
+                const squaredDiffs = periodData.map(d => Math.pow(d.value - sma, 2));
+                const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / period;
+                const stdDev = Math.sqrt(variance);
+                
+                // 计算上下轨
+                const upper = sma + (multiplier * stdDev);
+                const lower = sma - (multiplier * stdDev);
+                
+                result.push({
+                    date: smaData[i].date,
+                    middle: sma,
+                    upper: upper,
+                    lower: lower
+                });
+            }
+        }
+        
+        return result;
+    }
+    
+    // 计算平均真实范围 (ATR)
+    function calculateATR(data, period) {
+        const result = [];
+        if (data.length <= period) return result;
+        
+        // 计算真实范围 (TR)
+        const trValues = [];
+        trValues.push({
+            date: data[0].date,
+            tr: data[0].value // 第一个TR就是第一个价格值
+        });
+        
+        for (let i = 1; i < data.length; i++) {
+            const high = data[i].value;
+            const low = data[i].value;
+            const prevClose = data[i-1].value;
+            
+            // 真实范围是以下三个值中的最大值
+            const tr1 = Math.abs(high - low);
+            const tr2 = Math.abs(high - prevClose);
+            const tr3 = Math.abs(low - prevClose);
+            
+            const tr = Math.max(tr1, tr2, tr3);
+            
+            trValues.push({
+                date: data[i].date,
+                tr: tr
+            });
+        }
+        
+        // 计算第一个ATR (简单平均)
+        let firstATR = 0;
+        for (let i = 0; i < period; i++) {
+            firstATR += trValues[i].tr;
+        }
+        firstATR /= period;
+        
+        // 添加第一个ATR值
+        result.push({
+            date: trValues[period - 1].date,
+            atr: firstATR
+        });
+        
+        // 计算剩余的ATR值 (使用平滑方法)
+        for (let i = period; i < trValues.length; i++) {
+            const prevATR = result[result.length - 1].atr;
+            const currentTR = trValues[i].tr;
+            const currentATR = ((prevATR * (period - 1)) + currentTR) / period;
+            
+            result.push({
+                date: trValues[i].date,
+                atr: currentATR
+            });
+        }
+        
+        return result;
+    }
+    
+    // 相关性分析表单提交
+    document.getElementById('correlation-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const type1 = document.getElementById('type1').value;
+        const type2 = document.getElementById('type2').value;
+        
+        if (!type1 || !type2) {
+            alert('Please select two data types');
+            return;
+        }
+        
+        // 清空相关图表内容，但不删除容器
+        document.getElementById('correlation-info').innerHTML = '';
+        document.getElementById('correlation-chart').innerHTML = '';
+        
+        // 移除所有旧的统计分析结果
+        const oldStats = document.querySelectorAll('#correlation-info + .row, #correlation-info + .card');
+        oldStats.forEach(el => el.remove());
+        
+        // 显示加载中提示，隐藏结果和错误
+        document.getElementById('correlation-loading').style.display = 'block';
+        document.getElementById('correlation-result').style.display = 'none';
+        document.getElementById('correlation-error').style.display = 'none';
+        
+        // 发送相关性分析请求
+        fetch(`{{ url_for('analysis.correlation_analysis') }}?type1=${encodeURIComponent(type1)}&type2=${encodeURIComponent(type2)}`)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || 'Request failed'); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 隐藏加载中提示，显示结果
+                document.getElementById('correlation-loading').style.display = 'none';
+                document.getElementById('correlation-result').style.display = 'block';
+                
+                // 显示相关系数
+                const correlationInfo = document.getElementById('correlation-info');
+                correlationInfo.innerHTML = `Correlation between <strong>${type1}</strong> and <strong>${type2}</strong>: <strong>${data.correlation.toFixed(4)}</strong>`;
+                
+                if (data.summary) {
+                    correlationInfo.innerHTML += `<br><br>${data.summary}`;
+                }
+                
+                if (data.linear_summary) {
+                    correlationInfo.innerHTML += `<br><br>${data.linear_summary}`;
+                }
+                
+                // 创建散点图
+                const trace = {
+                    x: data.data.map(d => d.value_1),
+                    y: data.data.map(d => d.value_2),
+                    mode: 'markers',
+                    type: 'scatter',
+                    marker: { size: 8 }
+                };
+                
+                // 添加线性回归线（如果有）
+                let traces = [trace];
+                
+                if (data.linear_regression && data.linear_regression.slope !== null && data.linear_regression.intercept !== null) {
+                    // 计算回归线的起点和终点
+                    const xValues = data.data.map(d => d.value_1);
+                    const minX = Math.min(...xValues);
+                    const maxX = Math.max(...xValues);
+                    
+                    // 创建回归线点
+                    const lineX = [minX, maxX];
+                    const lineY = lineX.map(x => data.linear_regression.slope * x + data.linear_regression.intercept);
+                    
+                    // 添加回归线
+                    const regressionLine = {
+                        x: lineX,
+                        y: lineY,
+                        mode: 'lines',
+                        type: 'scatter',
+                        name: 'Linear Regression',
+                        line: {
+                            color: 'red',
+                            width: 2
+                        }
+                    };
+                    
+                    traces.push(regressionLine);
+                }
+                
+                const layout = {
+                    title: `${type1} vs ${type2} Correlation Analysis`,
+                    xaxis: { title: type1 },
+                    yaxis: { title: type2 },
+                    annotations: []
+                };
+                
+                // 添加相关系数注释
+                layout.annotations.push({
+                    x: 0.05,
+                    y: 0.95,
+                    xref: 'paper',
+                    yref: 'paper',
+                    text: `Pearson correlation: ${data.correlation.toFixed(4)}`,
+                    showarrow: false,
+                    font: {
+                        family: 'Arial',
+                        size: 14,
+                        color: 'rgba(0,0,0,0.8)'
+                    },
+                    bgcolor: 'rgba(255,255,255,0.8)',
+                    bordercolor: 'rgba(0,0,0,0.1)',
+                    borderwidth: 1,
+                    borderpad: 4,
+                    align: 'left'
+                });
+                
+                // 添加线性方程注释
+                if (data.linear_regression && data.linear_regression.slope !== null) {
+                    layout.annotations.push({
+                        x: 0.05,
+                        y: 0.85,
+                        xref: 'paper',
+                        yref: 'paper',
+                        text: `y = ${data.linear_regression.slope.toFixed(4)}x + ${data.linear_regression.intercept.toFixed(4)}`,
+                        showarrow: false,
+                        font: {
+                            family: 'Arial',
+                            size: 14,
+                            color: 'rgba(0,0,0,0.8)'
+                        },
+                        bgcolor: 'rgba(255,255,255,0.8)',
+                        bordercolor: 'rgba(0,0,0,0.1)',
+                        borderwidth: 1,
+                        borderpad: 4,
+                        align: 'left'
+                    });
+                }
+                
+                // 为相关性分析图表也添加交互工具
+                const corrConfig = {
+                    modeBarButtonsToAdd: [
+                        'select2d',
+                        'lasso2d',
+                        'zoom2d',
+                        'pan2d',
+                        'zoomIn2d',
+                        'zoomOut2d',
+                        'autoScale2d',
+                        'resetScale2d'
+                    ],
+                    scrollZoom: true,
+                    displaylogo: false,
+                    responsive: true,
+                    // 显式启用选择模式
+                    dragmode: 'select',
+                    // 确保框选工具始终可见
+                    modeBarButtonsToRemove: []
+                };
+                
+                Plotly.newPlot('correlation-chart', traces, layout, corrConfig);
+                
+                // 添加详细的统计分析结果
+                let statsHTML = '<div class="row mt-4"><div class="col-12"><h4>Detailed Statistical Analysis</h4></div></div>';
+                
+                // 相关性分析结果
+                statsHTML += `
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-primary text-white">Correlation Analysis</div>
+                            <div class="card-body">
+                                <table class="table table-striped">
+                                    <tbody>
+                                        <tr>
+                                            <th>Pearson correlation</th>
+                                            <td>${data.correlation.toFixed(4)}</td>
+                                        </tr>
+                                        ${data.spearman_correlation !== null ? 
+                                          `<tr>
+                                            <th>Spearman correlation (rank)</th>
+                                            <td>${data.spearman_correlation.toFixed(4)}</td>
+                                          </tr>` : ''}
+                                        ${data.covariance !== null ? 
+                                          `<tr>
+                                            <th>Covariance</th>
+                                            <td>${data.covariance.toFixed(4)}</td>
+                                          </tr>` : ''}
+                                        <tr>
+                                            <th>Number of data points</th>
+                                            <td>${data.count}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-success text-white">Linear Regression Analysis</div>
+                            <div class="card-body">
+                                <table class="table table-striped">
+                                    <tbody>
+                                        ${data.linear_regression ? `
+                                        <tr>
+                                            <th>Slope</th>
+                                            <td>${data.linear_regression.slope !== null ? data.linear_regression.slope.toFixed(4) : 'N/A'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Intercept</th>
+                                            <td>${data.linear_regression.intercept !== null ? data.linear_regression.intercept.toFixed(4) : 'N/A'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>R value</th>
+                                            <td>${data.linear_regression.r_value !== null ? data.linear_regression.r_value.toFixed(4) : 'N/A'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>p-value</th>
+                                            <td>${data.linear_regression.p_value !== null ? 
+                                                 `${data.linear_regression.p_value.toFixed(4)} ${data.linear_regression.p_value < 0.05 ? 
+                                                   '<span class="badge bg-success">Significant</span>' : 
+                                                   '<span class="badge bg-warning">Not Significant</span>'}` : 'N/A'}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Std. error</th>
+                                            <td>${data.linear_regression.std_err !== null ? data.linear_regression.std_err.toFixed(4) : 'N/A'}</td>
+                                        </tr>
+                                        ` : '<tr><td colspan="2">Linear regression data unavailable</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${data.normality_test ? `
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="card-header bg-info text-white">Normality Test (Shapiro-Wilk)</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Variable 1: ${type1}</h5>
+                                        <table class="table table-striped">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Test statistic</th>
+                                                    <td>${data.normality_test.variable1.statistic !== null ? data.normality_test.variable1.statistic.toFixed(4) : 'N/A'}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>p-value</th>
+                                                    <td>${data.normality_test.variable1.p_value !== null ? 
+                                                         `${data.normality_test.variable1.p_value.toFixed(4)} ${data.normality_test.variable1.p_value > 0.05 ? 
+                                                           '<span class="badge bg-success">Normal</span>' : 
+                                                           '<span class="badge bg-warning">Non-normal</span>'}` : 'N/A'}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Variable 2: ${type2}</h5>
+                                        <table class="table table-striped">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Test statistic</th>
+                                                    <td>${data.normality_test.variable2.statistic !== null ? data.normality_test.variable2.statistic.toFixed(4) : 'N/A'}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>p-value</th>
+                                                    <td>${data.normality_test.variable2.p_value !== null ? 
+                                                         `${data.normality_test.variable2.p_value.toFixed(4)} ${data.normality_test.variable2.p_value > 0.05 ? 
+                                                           '<span class="badge bg-success">Normal</span>' : 
+                                                           '<span class="badge bg-warning">Non-normal</span>'}` : 'N/A'}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="mt-3 small text-muted">
+                                    <p><strong>Tip:</strong> p-value &gt; 0.05 suggests the data may be normally distributed. If not, Spearman correlation is often more appropriate.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>` : ''}
+                
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="card-header bg-warning text-dark">Analysis Notes</div>
+                            <div class="card-body">
+                                <h5>Correlation interpretation</h5>
+                                <ul>
+                                    <li><strong>Pearson correlation:</strong> Measures linear relationship strength between two variables, from -1 to +1.</li>
+                                    <li><strong>Spearman correlation:</strong> A nonparametric measure for non-normal data, capturing monotonic relationships.</li>
+                                </ul>
+                                
+                                <h5>Interpretation Guide</h5>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Correlation range</th>
+                                            <th>Meaning</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>0.00 - 0.10</td><td>No or negligible correlation</td></tr>
+                                        <tr><td>0.10 - 0.30</td><td>Weak correlation</td></tr>
+                                        <tr><td>0.30 - 0.50</td><td>Moderate correlation</td></tr>
+                                        <tr><td>0.50 - 0.70</td><td>Strong correlation</td></tr>
+                                        <tr><td>0.70 - 1.00</td><td>Very strong correlation</td></tr>
+                                    </tbody>
+                                </table>
+                                
+                                <h5>Linear regression interpretation</h5>
+                                <ul>
+                                    <li><strong>p-value:</strong> Less than 0.05 indicates statistical significance</li>
+                                    <li><strong>R-squared:</strong> Explains about ${data.linear_regression && data.linear_regression.r_value ? 
+                                          `${Math.round(Math.pow(data.linear_regression.r_value, 2) * 100)}%` : 'X%'} of the variance</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                
+                // 添加到页面
+                document.getElementById('correlation-info').insertAdjacentHTML('afterend', statsHTML);
+            })
+            .catch(error => {
+                // 隐藏加载中提示，显示错误
+                document.getElementById('correlation-loading').style.display = 'none';
+                document.getElementById('correlation-error').style.display = 'block';
+                document.getElementById('correlation-error').textContent = `Analysis failed: ${error.message}`;
+            });
+    });
+</script>
+{% endblock %} 

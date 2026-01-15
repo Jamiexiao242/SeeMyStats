@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+
+{% block title %}HealthWeb - Health Summary{% endblock %}
+
+{% block head %}
+<style>
+    .health-score {
+        font-size: 3.5rem;
+        font-weight: bold;
+    }
+    .score-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .status-label {
+        font-size: 0.9rem;
+        font-weight: bold;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    .status-good {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .status-warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .status-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .health-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Health Summary</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8 offset-md-2 text-center mb-4">
+                        <p class="lead">Based on your Apple Health data, we generated the following health summary.</p>
+                        <p class="text-muted small">Note: This summary is based on available data and does not constitute medical advice. If you have health concerns, consult a medical professional.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
+        {% if summary.get('heart_rate') %}
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0"><i class="bi bi-heart-pulse"></i> Heart Health</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="health-icon text-danger">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+                <h4>Average Heart Rate</h4>
+                <div class="score-container mb-3">
+                    <span class="health-score">{{ summary.heart_rate.average|float|round(0)|int }}</span>
+                </div>
+                <p>bpm (beats per minute)</p>
+                
+                <hr class="my-3">
+                
+                <div class="mb-3">
+                    <span class="status-label 
+                        {% if summary.heart_rate.status == 'Normal' %}status-good
+                        {% elif summary.heart_rate.status == 'Low' %}status-warning
+                        {% else %}status-danger{% endif %}">
+                        {{ summary.heart_rate.status }}
+                    </span>
+                </div>
+                
+                <p class="card-text">
+                    {% if summary.heart_rate.status == 'Normal' %}
+                    Your average heart rate is within the normal range (60-100 bpm). A healthy heart rate suggests good cardiovascular function.
+                    {% elif summary.heart_rate.status == 'Low' %}
+                    Your average heart rate is slightly below the normal range (below 60 bpm). This can reflect good fitness, but consult a doctor if you have symptoms.
+                    {% else %}
+                    Your average heart rate is above the normal range (over 100 bpm). Moderate exercise, stress management, and healthy habits may help. If it stays high, consider consulting a doctor.
+                    {% endif %}
+                </p>
+                
+                <div class="mt-3">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Min Heart Rate:</span>
+                            <strong>{{ summary.heart_rate.min|float|round(0)|int }} bpm</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Max Heart Rate:</span>
+                            <strong>{{ summary.heart_rate.max|float|round(0)|int }} bpm</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        {% if summary.get('steps') %}
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-person-walking"></i> Activity Level</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="health-icon text-primary">
+                    <i class="bi bi-activity"></i>
+                </div>
+                <h4>Average Steps</h4>
+                <div class="score-container mb-3">
+                    <span class="health-score">{{ summary.steps.average|float|round(0)|int }}</span>
+                </div>
+                <p>Average daily steps</p>
+                
+                <hr class="my-3">
+                
+                <div class="mb-3">
+                    <span class="status-label 
+                        {% if summary.steps.activity_level == 'High activity' %}status-good
+                        {% elif summary.steps.activity_level == 'Moderately high activity' %}status-good
+                        {% elif summary.steps.activity_level == 'Moderate activity' %}status-warning
+                        {% else %}status-danger{% endif %}">
+                        {{ summary.steps.activity_level }}
+                    </span>
+                </div>
+                
+                <p class="card-text">
+                    {% if summary.steps.activity_level == 'High activity' %}
+                    Excellent activity level. Keeping above 10,000 steps per day supports cardiovascular and overall health.
+                    {% elif summary.steps.activity_level == 'Moderately high activity' %}
+                    Good activity level. Maintaining 7,500-10,000 steps per day provides significant health benefits.
+                    {% elif summary.steps.activity_level == 'Moderate activity' %}
+                    Moderate activity level. Try to increase daily movement, aiming for at least 7,500 steps per day.
+                    {% else %}
+                    Low activity level. Increasing daily walking and other physical activity can improve health. Aim for at least 5,000 steps per day.
+                    {% endif %}
+                </p>
+                
+                <div class="mt-3">
+                    <div class="progress mb-3" style="height: 20px;">
+                        {% if summary.steps.average >= 10000 %}
+                            {% set progress = 100 %}
+                        {% else %}
+                            {% set progress = (summary.steps.average|float / 10000 * 100)|round(0)|int %}
+                        {% endif %}
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%">{{ progress }}%</div>
+                    </div>
+                    <small class="text-muted">Goal: 10,000 steps/day</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        {% if summary.get('sleep') %}
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0"><i class="bi bi-moon"></i> Sleep Health</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="health-icon text-info">
+                    <i class="bi bi-moon-stars-fill"></i>
+                </div>
+                <h4>Average Sleep Duration</h4>
+                <div class="score-container mb-3">
+                    <span class="health-score">{{ summary.sleep.average|float|round(1) }}</span>
+                </div>
+                <p>hours/day</p>
+                
+                <hr class="my-3">
+                
+                <div class="mb-3">
+                    <span class="status-label 
+                        {% if summary.sleep.status == 'Normal' %}status-good
+                        {% elif summary.sleep.status == 'Short sleep' %}status-danger
+                        {% else %}status-warning{% endif %}">
+                        {{ summary.sleep.status }}
+                    </span>
+                </div>
+                
+                <p class="card-text">
+                    {% if summary.sleep.status == 'Normal' %}
+                    Your sleep duration is within the healthy range (7-9 hours). Good sleep supports recovery, cognition, and immunity.
+                    {% elif summary.sleep.status == 'Short sleep' %}
+                    Your sleep duration is below the recommended range. Try adjusting your schedule, improving the sleep environment, and reducing screen time before bed.
+                    {% else %}
+                    Your sleep duration is above typical recommendations. Needs vary, but long sleep may be linked to some health issues. If excessive sleep persists with other symptoms, consider consulting a doctor.
+                    {% endif %}
+                </p>
+                
+                <div class="mt-3">
+                    <div class="progress mb-3" style="height: 20px;">
+                        {% if summary.sleep.average >= 9 %}
+                            {% set progress = 100 %}
+                        {% else %}
+                            {% set progress = (summary.sleep.average|float / 8 * 100)|round(0)|int %}
+                            {% if progress > 100 %}
+                                {% set progress = 100 %}
+                            {% endif %}
+                        {% endif %}
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress }}%">{{ progress }}%</div>
+                    </div>
+                    <small class="text-muted">Recommended: 7-9 hours/day</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        {% if summary.get('stress') %}
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0"><i class="bi bi-graph-up"></i> Stress Level</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="health-icon text-warning">
+                    <i class="bi bi-alarm"></i>
+                </div>
+                <h4>Stress Index</h4>
+                <div class="score-container mb-3">
+                    <span class="health-score">{{ summary.stress.average|float|round(1) }}</span>
+                </div>
+                <p>Estimated from heart rate variability</p>
+                
+                <hr class="my-3">
+                
+                <div class="mb-3">
+                    <span class="status-label 
+                        {% if summary.stress.level == 'Low stress' %}status-good
+                        {% elif summary.stress.level == 'Moderate stress' %}status-warning
+                        {% else %}status-danger{% endif %}">
+                        {{ summary.stress.level }}
+                    </span>
+                </div>
+                
+                <p class="card-text">
+                    {% if summary.stress.level == 'Low stress' %}
+                    Your stress level is low, which is a sign of good overall wellbeing. Keep balanced routines and effective stress management.
+                    {% elif summary.stress.level == 'Moderate stress' %}
+                    Your stress level is moderate. Some stress is normal, but make sure you have enough rest and relaxation. Consider meditation, deep breathing, or other techniques.
+                    {% else %}
+                    Your stress level is high. Prolonged stress can negatively affect health. Increase rest, try relaxation techniques, and seek support if needed.
+                    {% endif %}
+                </p>
+                
+                <div class="mt-3">
+                    <div class="progress mb-3" style="height: 20px;">
+                        {% set stress_percent = (summary.stress.average|float / 15 * 100)|round(0)|int %}
+                        {% if stress_percent > 100 %}
+                            {% set stress_percent = 100 %}
+                        {% endif %}
+                        
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ stress_percent }}%">{{ stress_percent }}%</div>
+                    </div>
+                    <small class="text-muted">Stress scale</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h3 class="mb-0">Health Improvement Tips</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- 心脏健康建议 -->
+                    {% if summary.get('heart_rate') %}
+                    <div class="col-md-6 mb-4">
+                        <h4><i class="bi bi-heart-pulse text-danger"></i> Heart Health</h4>
+                        <ul class="list-group list-group-flush">
+                            {% if summary.heart_rate.status == 'High' %}
+                            <li class="list-group-item">Do regular aerobic exercise such as brisk walking, swimming, or cycling</li>
+                            <li class="list-group-item">Reduce caffeine and alcohol intake</li>
+                            <li class="list-group-item">Maintain a healthy weight and reduce high-salt and high-fat foods</li>
+                            <li class="list-group-item">Learn and practice stress management techniques</li>
+                            <li class="list-group-item">Get adequate sleep</li>
+                            {% elif summary.heart_rate.status == 'Low' %}
+                            <li class="list-group-item">Stay well hydrated</li>
+                            <li class="list-group-item">Maintain a balanced diet with sufficient nutrients</li>
+                            <li class="list-group-item">If you feel dizzy or fatigued, consult a doctor</li>
+                            <li class="list-group-item">Adjust exercise intensity to your condition</li>
+                            {% else %}
+                            <li class="list-group-item">Keep a healthy lifestyle</li>
+                            <li class="list-group-item">Do regular aerobic exercise</li>
+                            <li class="list-group-item">Maintain a balanced diet</li>
+                            <li class="list-group-item">Monitor heart rate regularly</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 活动建议 -->
+                    {% if summary.get('steps') %}
+                    <div class="col-md-6 mb-4">
+                        <h4><i class="bi bi-person-walking text-primary"></i> Activity Tips</h4>
+                        <ul class="list-group list-group-flush">
+                            {% if summary.steps.activity_level in ['Low activity', 'Moderate activity'] %}
+                            <li class="list-group-item">Set a daily step goal and increase gradually</li>
+                            <li class="list-group-item">Stand up and move for a few minutes every hour</li>
+                            <li class="list-group-item">Choose walking instead of driving for short trips</li>
+                            <li class="list-group-item">Take stairs instead of elevators</li>
+                            <li class="list-group-item">Consider joining a walking group or finding a partner for motivation</li>
+                            {% else %}
+                            <li class="list-group-item">Maintain your current activity level</li>
+                            <li class="list-group-item">Consider adding strength training to improve overall health</li>
+                            <li class="list-group-item">Ensure enough rest and recovery on high-activity days</li>
+                            <li class="list-group-item">Pay attention to good walking posture</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 睡眠建议 -->
+                    {% if summary.get('sleep') %}
+                    <div class="col-md-6 mb-4">
+                        <h4><i class="bi bi-moon text-info"></i> Sleep Tips</h4>
+                        <ul class="list-group list-group-flush">
+                            {% if summary.sleep.status == 'Short sleep' %}
+                            <li class="list-group-item">Keep a consistent sleep schedule</li>
+                            <li class="list-group-item">Reduce screen time before bed</li>
+                            <li class="list-group-item">Create a sleep-friendly environment: dark, quiet, cool</li>
+                            <li class="list-group-item">Avoid caffeine and heavy meals before bed</li>
+                            <li class="list-group-item">Try relaxing routines such as reading, soft music, or meditation</li>
+                            {% elif summary.sleep.status == 'Long sleep' %}
+                            <li class="list-group-item">Set a consistent wake time</li>
+                            <li class="list-group-item">Increase daytime activity</li>
+                            <li class="list-group-item">Maintain a healthy sleep environment</li>
+                            <li class="list-group-item">If you continue to feel fatigued, consider consulting a doctor</li>
+                            {% else %}
+                            <li class="list-group-item">Keep your current good sleep habits</li>
+                            <li class="list-group-item">Adjust your sleep plan for seasonal or work changes</li>
+                            <li class="list-group-item">Focus on sleep quality, not just duration</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- 压力管理建议 -->
+                    {% if summary.get('stress') %}
+                    <div class="col-md-6 mb-4">
+                        <h4><i class="bi bi-graph-up text-warning"></i> Stress Management</h4>
+                        <ul class="list-group list-group-flush">
+                            {% if summary.stress.level == 'High stress' %}
+                            <li class="list-group-item">Practice deep breathing or meditation techniques</li>
+                            <li class="list-group-item">Increase physical activity to release stress</li>
+                            <li class="list-group-item">Cultivate hobbies as a way to relax</li>
+                            <li class="list-group-item">Limit caffeine and increase sleep time</li>
+                            <li class="list-group-item">Consider professional support if needed</li>
+                            {% elif summary.stress.level == 'Moderate stress' %}
+                            <li class="list-group-item">Learn basic stress management techniques</li>
+                            <li class="list-group-item">Maintain regular physical activity</li>
+                            <li class="list-group-item">Prioritize important tasks and learn to say "no"</li>
+                            <li class="list-group-item">Keep social connections and emotional support</li>
+                            {% else %}
+                            <li class="list-group-item">Keep your current stress management routines</li>
+                            <li class="list-group-item">Regularly review your work-life balance</li>
+                            <li class="list-group-item">Share what works for you with others</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center mb-4">
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">Back to Dashboard</a>
+        <a href="{{ url_for('analysis.index') }}" class="btn btn-success ms-2">View Detailed Analysis</a>
+    </div>
+</div>
+{% endblock %} 

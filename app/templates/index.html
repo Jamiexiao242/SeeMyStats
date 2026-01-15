@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}HealthWeb - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="card">
+            <div class="card-body text-center">
+                <h1 class="display-4 mb-4">Welcome to HealthWeb</h1>
+                <p class="lead">Your personal Apple Health data analytics platform</p>
+                
+                {% if has_data %}
+                <hr class="my-4">
+                <p>Your data is uploaded and ready for analysis</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg">View Dashboard</a>
+                    <a href="{{ url_for('analysis.index') }}" class="btn btn-success btn-lg ms-3">Analyze Data</a>
+                </div>
+                {% else %}
+                <hr class="my-4">
+                <p>Before you get started, upload your Apple Health data</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('upload.upload_file') }}" class="btn btn-primary btn-lg">Upload Data</a>
+                </div>
+                <div class="card mt-5 mb-4">
+                    <div class="card-header bg-light">
+                        <h4>How to export your Apple Health data</h4>
+                    </div>
+                    <div class="card-body">
+                        <ol class="text-start">
+                            <li>Open the Health app on your iPhone</li>
+                            <li>Tap your profile icon in the top right</li>
+                            <li>Scroll down and tap "Export All Health Data"</li>
+                            <li>The export may take a few minutes depending on your data size</li>
+                            <li>Locate export.xml and transfer it to your computer via AirDrop, email, or another method</li>
+                            <li>Upload export.xml on this site</li>
+                        </ol>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title"><i class="bi bi-heart-pulse"></i> Heart Health</h3>
+                        <p class="card-text">Analyze your heart rate data to understand cardiovascular health. Spot unusual patterns and trends.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title"><i class="bi bi-activity"></i> Stress Management</h3>
+                        <p class="card-text">Assess stress levels using heart rate variability and other metrics, with guidance on managing stress.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title"><i class="bi bi-person-walking"></i> Fitness Activity</h3>
+                        <p class="card-text">Track steps, distance, and workouts to analyze activity patterns and set goals.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}HealthWeb - Upload Data{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="card-title mb-0">Upload Health Data</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <div class="form-group mb-4">
+                        <label for="file">Choose export.xml:</label>
+                        <div class="upload-options mt-3">
+                            <div class="upload-option mb-3">
+                                <label class="btn btn-outline-primary">
+                                    Choose File
+                                    <input type="file" name="file" id="file" class="d-none" accept=".xml">
+                                </label>
+                                <span id="file-name" class="ml-2">No file selected</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Upload" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">How to export your Apple Health data</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h4>Steps:</h4>
+                        <ol>
+                            <li>Open the Health app on your iPhone</li>
+                            <li>Tap your profile photo or profile in the top right</li>
+                            <li>Scroll to the bottom and tap "Export All Health Data"</li>
+                            <li>Tap "Export" and wait for the export to finish</li>
+                            <li>Wait for the export to finish and locate export.xml</li>
+                            <li>Transfer export.xml to your computer</li>
+                            <li>Upload export.xml here</li>
+                        </ol>
+                    </div>
+                    <div class="col-lg-6">
+                        <h4>Notes:</h4>
+                        <ul>
+                            <li>The export may take several minutes depending on your data size</li>
+                            <li>The exported file can be large (tens to hundreds of MB)</li>
+                            <li>All processing happens locally in your browser and is not uploaded to a server</li>
+                            <li>Only export.xml is supported for upload</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">Privacy</h3>
+            </div>
+            <div class="card-body">
+                <p></p>
+                <ul>
+                    <li>All processing happens locally, and your data is not sent to any remote server</li>
+                    <li>Your data is only used during the current browser session and will be cleared when you close the browser</li>
+                    <li>You can click the "Clear Data" button in the top navigation at any time to remove all data</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  document.getElementById('file').addEventListener('change', function(e) {
+    document.getElementById('file-name').textContent = e.target.files[0] ? e.target.files[0].name : 'No file selected';
+  });
+</script>
+{% endblock %} 
